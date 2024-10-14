@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -10,14 +11,12 @@ public class Board : MonoBehaviour
     public int SideTilesCount;
     private Tile[][] _tiles;
     private List<bool[][]> _history = new List<bool[][]>();
-    public int changedTilesCount = 0;
 
     private void _createBoard(float startX, float startY, float sideSize)
     {
         var gap = 0.02f;
-        var effectiveSize = sideSize;
-        var tileSize = (effectiveSize - (SideTilesCount - 1) * gap) / SideTilesCount;
-        var side = (int)Math.Round(effectiveSize / tileSize);
+        var tileSize = (sideSize - (SideTilesCount - 1) * gap) / SideTilesCount;
+        var side = (int)Math.Round(sideSize / tileSize);
 
         _tiles = new Tile[side][];
         tilePrefab.transform.localScale = new Vector2(tileSize, tileSize);
@@ -133,7 +132,6 @@ public class Board : MonoBehaviour
             var tile = hit.collider.gameObject.GetComponent<Tile>();
 
             tile.Toggle();
-            changedTilesCount++;
         }
     }
 
@@ -173,5 +171,13 @@ public class Board : MonoBehaviour
         }
 
         return count;
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            _handleClick();
+        }
     }
 }

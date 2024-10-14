@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Random = UnityEngine.Random;
 
 public class LifeGameGrid : MonoBehaviour
 {
@@ -22,6 +24,11 @@ public class LifeGameGrid : MonoBehaviour
         _cellImages = new Image[gridSizeX, gridSizeY];
 
         CreateGrid();
+        StartCoroutine(GameLoop());
+    }
+
+    private void OnEnable()
+    {
         StartCoroutine(GameLoop());
     }
 
