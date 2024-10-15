@@ -32,10 +32,12 @@ public class GameEngine : MonoBehaviour
     public TMP_Text player2Desc;
     public TMP_Text player1win;
     public TMP_Text player2win;
+    public TMP_Text cellsLeft;
+    public int activationsLimit = 5;
 
-    private Board[] _boards = new Board[2];
+    private readonly Board[] _boards = new Board[2];
     private bool[][] _initBoardState;
-    private int playerN = 0;
+    private int _playerN = 0;
     
     private int _changedTiles1 = 0;
     private int _changedTiles2 = 0;
@@ -46,13 +48,15 @@ public class GameEngine : MonoBehaviour
         preGameUI.SetActive(false);
         gameUI.SetActive(true);
         boardsParent.SetActive(true);
+
+        _setCellsLeft(activationsLimit);
         var board = _createBoard();
         var width = _getWidth();
         var height = width / Screen.width * Screen.height;
         var margin = 0f;
         var boardSize = height - 2 * margin;
-        board.Initialize(-boardSize / 2, -boardSize / 2, boardSize);
-        if (playerN == 1)
+        board.Initialize(-boardSize / 2, -boardSize / 2, boardSize, activationsLimit, OnTileClicked);
+        if (_playerN == 1)
         {
             board.SetState(_initBoardState);
         }
@@ -61,15 +65,25 @@ public class GameEngine : MonoBehaviour
             _initBoardState = board.GetState();
         }
 
-        _boards[playerN] = board;
+        _boards[_playerN] = board;
+    }
+
+    private void _setCellsLeft(int n)
+    {
+        cellsLeft.text = $"{n} cells\nleft";
+    }
+
+    public void OnTileClicked()
+    {
+        _setCellsLeft(_boards[_playerN].activationsLimit);
     }
 
     public void PlayerDone()
     {
         boardsParent.SetActive(false);
-        if (playerN == 0)
+        if (_playerN == 0)
         {
-            playerN = 1;
+            _playerN = 1;
             PreGame();
         }
         else
@@ -98,7 +112,8 @@ public class GameEngine : MonoBehaviour
     public void Menu()
     {
         currentStage = Stage.MenuStage;
-        playerN = 0;
+        _destroyBoards();
+        _playerN = 0;
         menuUI.SetActive(true);
         pauseUI.SetActive(false);
         resultsUI.SetActive(false);
@@ -116,6 +131,18 @@ public class GameEngine : MonoBehaviour
         return Camera.main.orthographicSize * Camera.main.aspect * 2;
     }
 
+    private void _destroyBoards()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            if (_boards[i] is not null)
+            {
+                Destroy(_boards[i].gameObject);
+                _boards[i] = null;
+            }
+        }
+    }
+
     public void GameAnimation()
     {
         currentStage = Stage.AnimationState;
@@ -126,8 +153,7 @@ public class GameEngine : MonoBehaviour
 
         var state1 = _boards[0].GetState();
         var state2 = _boards[1].GetState();
-        Destroy(_boards[0].gameObject);
-        Destroy(_boards[1].gameObject);
+        _destroyBoards();
 
         var width = _getWidth();
         var distance = 0.4f;
@@ -137,11 +163,11 @@ public class GameEngine : MonoBehaviour
         var startX = -boardSize - distance / 2;
 
         _boards[0] = _createBoard();
-        _boards[0].Initialize(startX, -boardSize / 2, boardSize);
+        _boards[0].Initialize(startX, -boardSize / 2, boardSize, 0);
         _boards[0].SetState(state1);
 
         _boards[1] = _createBoard();
-        _boards[1].Initialize(distance / 2, -boardSize / 2, boardSize);
+        _boards[1].Initialize(distance / 2, -boardSize / 2, boardSize, 0);
         _boards[1].SetState(state2);
     }
 
@@ -204,25 +230,24 @@ public class GameEngine : MonoBehaviour
         var score1 = _boards[0].CountTiles();
         var score2 = _boards[1].CountTiles();
         
-        Destroy(_boards[0].gameObject);
-        Destroy(_boards[1].gameObject);
+        _destroyBoards();
 
         player1Desc.text = $"{_changedTiles1} cells changed\n{score1} cells survived";
         player2Desc.text = $"{_changedTiles2} cells changed\n{score2} cells survived";
 
         var winColor = new Color32(0x00, 0x9E, 0x39, 0xFF);
         var loseColor = new Color32(0xE6, 0x25, 0x42, 0xFF);
+        player1win.text = "you lose";
+        player2win.text = "you lose";
+        player1win.color = loseColor;
+        player2win.color = loseColor;
         if (score1 > score2)
         {
             player1win.text = "you win";
             player1win.color = winColor;
-            player2win.text = "you lose";
-            player2win.color = loseColor;
         }
-        else
+        else if(score1 < score2)
         {
-            player1win.text = "you lose";
-            player1win.color = loseColor;
             player2win.text = "you win";
             player2win.color = winColor;
         }
@@ -233,7 +258,7 @@ public class GameEngine : MonoBehaviour
         currentStage = Stage.PreGameStage;
         menuUI.SetActive(false);
         gameUI.SetActive(false);
-        preGameUI.GetComponentsInChildren<TMP_Text>()[0].text = "player " + (playerN + 1).ToString();
+        preGameUI.GetComponentsInChildren<TMP_Text>()[0].text = "player " + (_playerN + 1).ToString();
         preGameUI.SetActive(true);
     }
 

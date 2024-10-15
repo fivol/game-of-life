@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
-using Unity.VisualScripting;
 using UnityEngine;
 
 
@@ -11,6 +10,10 @@ public class Board : MonoBehaviour
     public int SideTilesCount;
     private Tile[][] _tiles;
     private List<bool[][]> _history = new List<bool[][]>();
+    public int activationsLimit;
+    public delegate void ClickCallback();
+
+    private ClickCallback _callback;
 
     private void _createBoard(float startX, float startY, float sideSize)
     {
@@ -114,9 +117,11 @@ public class Board : MonoBehaviour
         return state;
     }
     
-    public void Initialize(float x, float y, float sideSize)
+    public void Initialize(float x, float y, float sideSize, int limit, ClickCallback callback=null)
     {
         _createBoard(x, y, sideSize);
+        activationsLimit = limit;
+        _callback = callback;
     }
     
     void _handleClick()
@@ -130,8 +135,12 @@ public class Board : MonoBehaviour
             Debug.Log("Hit Object: " + hit.collider.gameObject.name);
 
             var tile = hit.collider.gameObject.GetComponent<Tile>();
-
-            tile.Toggle();
+            if (tile is not null && !tile.IsActive() && activationsLimit > 0)
+            {
+                activationsLimit--;
+                tile.Activate();
+                _callback?.Invoke();
+            }
         }
     }
 
@@ -143,6 +152,10 @@ public class Board : MonoBehaviour
 
     public void PrevIteration()
     {
+        if (_history.Count == 0)
+        {
+            return;
+        }
         var state = _history[_history.Count - 1];
         _history.RemoveAt(_history.Count - 1);
         SetState(state);
