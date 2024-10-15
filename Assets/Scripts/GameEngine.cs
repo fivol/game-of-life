@@ -33,6 +33,7 @@ public class GameEngine : MonoBehaviour
     public TMP_Text player1win;
     public TMP_Text player2win;
     public TMP_Text cellsLeft;
+    public TMP_Text pausePlayer;
     public int activationsLimit = 5;
 
     private readonly Board[] _boards = new Board[2];
@@ -104,6 +105,7 @@ public class GameEngine : MonoBehaviour
     public void Pause()
     {
         currentStage = Stage.PauseStage;
+        pausePlayer.text = $"player {_playerN}";
         gameUI.SetActive(false);
         pauseUI.SetActive(true);
         boardsParent.SetActive(false);

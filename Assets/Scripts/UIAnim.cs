@@ -16,6 +16,7 @@ public class LifeGameGrid : MonoBehaviour
     private bool[,] _cells;
     private float[,] _fadeValues;
     private Image[,] _cellImages;
+    private Coroutine _coroutine;
 
     void Start()
     {
@@ -24,12 +25,17 @@ public class LifeGameGrid : MonoBehaviour
         _cellImages = new Image[gridSizeX, gridSizeY];
 
         CreateGrid();
-        StartCoroutine(GameLoop());
+        _coroutine = StartCoroutine(GameLoop());
     }
 
     private void OnEnable()
     {
-        StartCoroutine(GameLoop());
+        _coroutine = StartCoroutine(GameLoop());
+    }
+
+    private void OnDisable()
+    {
+        StopCoroutine(_coroutine);
     }
 
     void CreateGrid()
@@ -41,7 +47,8 @@ public class LifeGameGrid : MonoBehaviour
                 GameObject cell = Instantiate(cellPrefab, canvasTransform);
                 cell.transform.parent = gameObject.transform;
                 RectTransform rectTransform = cell.GetComponent<RectTransform>();
-                rectTransform.anchoredPosition = new Vector2(x * cellSize - (gridSizeX * cellSize) / 2, y * cellSize - (gridSizeY * cellSize) / 2);
+                rectTransform.anchoredPosition = new Vector2(x * cellSize - (gridSizeX * cellSize) / 2,
+                    y * cellSize - (gridSizeY * cellSize) / 2);
                 rectTransform.sizeDelta = new Vector2(cellSize, cellSize);
                 _cellImages[x, y] = cell.GetComponent<Image>();
                 _cellImages[x, y].color = new Color(0, 0, 0, 0);
@@ -56,12 +63,13 @@ public class LifeGameGrid : MonoBehaviour
             Randomize3X3();
             yield return StartCoroutine(FadeIn());
 
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 15; i++)
             {
                 if (!ApplyLifeRules())
                 {
                     continue;
                 }
+
                 UpdateGridVisuals();
                 yield return new WaitForSeconds(0.2f);
             }
@@ -86,7 +94,7 @@ public class LifeGameGrid : MonoBehaviour
             }
         }
     }
-    
+
     IEnumerator FadeIn()
     {
         float time = 0;
@@ -152,6 +160,7 @@ public class LifeGameGrid : MonoBehaviour
     {
         bool changed = false;
         bool[,] newCells = new bool[gridSizeX, gridSizeY];
+        newCells = _cells;
 
         for (int x = 0; x < gridSizeX; x++)
         {
@@ -162,11 +171,10 @@ public class LifeGameGrid : MonoBehaviour
                 {
                     changed = true;
                     newCells[x, y] = true;
-                    _fadeValues[x, y] = 1;
-                }else if (_cells[x, y] && (aliveNeighbors < 2 || aliveNeighbors > 3))
+                }
+                else if (_cells[x, y] && (aliveNeighbors < 2 || aliveNeighbors > 3))
                 {
                     newCells[x, y] = false;
-                    _fadeValues[x, y] = 0;
                     changed = true;
                 }
             }
@@ -192,6 +200,7 @@ public class LifeGameGrid : MonoBehaviour
                 }
             }
         }
+
         return count;
     }
 
