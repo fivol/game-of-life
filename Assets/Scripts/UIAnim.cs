@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
@@ -63,7 +62,7 @@ public class LifeGameGrid : MonoBehaviour
             Randomize3X3();
             yield return StartCoroutine(FadeIn());
 
-            for (int i = 0; i < 15; i++)
+            for (int i = 0; i < 10; i++)
             {
                 if (!ApplyLifeRules())
                 {
@@ -71,7 +70,7 @@ public class LifeGameGrid : MonoBehaviour
                 }
 
                 UpdateGridVisuals();
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(0.15f);
             }
 
             yield return StartCoroutine(FadeOut());
@@ -160,7 +159,6 @@ public class LifeGameGrid : MonoBehaviour
     {
         bool changed = false;
         bool[,] newCells = new bool[gridSizeX, gridSizeY];
-        newCells = _cells;
 
         for (int x = 0; x < gridSizeX; x++)
         {
@@ -171,11 +169,18 @@ public class LifeGameGrid : MonoBehaviour
                 {
                     changed = true;
                     newCells[x, y] = true;
+                    _fadeValues[x, y] = 1;
+
                 }
                 else if (_cells[x, y] && (aliveNeighbors < 2 || aliveNeighbors > 3))
                 {
                     newCells[x, y] = false;
                     changed = true;
+                    _fadeValues[x, y] = 0;
+                }
+                else
+                {
+                    newCells[x, y] = _cells[x, y];
                 }
             }
         }
