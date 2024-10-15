@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
@@ -17,19 +18,25 @@ public class LifeGameGrid : MonoBehaviour
     private Image[,] _cellImages;
     private Coroutine _coroutine;
 
-    void Start()
+    private void Awake()
     {
         _cells = new bool[gridSizeX, gridSizeY];
         _fadeValues = new float[gridSizeX, gridSizeY];
         _cellImages = new Image[gridSizeX, gridSizeY];
+    }
 
+    void Start()
+    {
         CreateGrid();
         _coroutine = StartCoroutine(GameLoop());
     }
 
     private void OnEnable()
     {
-        _coroutine = StartCoroutine(GameLoop());
+        if (_coroutine is not null)
+        {
+            _coroutine = StartCoroutine(GameLoop());
+        }
     }
 
     private void OnDisable()
@@ -44,7 +51,7 @@ public class LifeGameGrid : MonoBehaviour
             for (int y = 0; y < gridSizeY; y++)
             {
                 GameObject cell = Instantiate(cellPrefab, canvasTransform);
-                cell.transform.parent = gameObject.transform;
+                cell.transform.SetParent(gameObject.transform);
                 RectTransform rectTransform = cell.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = new Vector2(x * cellSize - (gridSizeX * cellSize) / 2,
                     y * cellSize - (gridSizeY * cellSize) / 2);
@@ -79,8 +86,8 @@ public class LifeGameGrid : MonoBehaviour
 
     void Randomize3X3()
     {
-        int startX = Random.Range(0, gridSizeX - 3);
-        int startY = Random.Range(0, gridSizeY - 3);
+        int startX = Random.Range(0, gridSizeX - 4);
+        int startY = Random.Range(0, gridSizeY - 4);
 
         for (int x = startX; x < startX + 4; x++)
         {

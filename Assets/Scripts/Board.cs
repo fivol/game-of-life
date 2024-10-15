@@ -33,7 +33,7 @@ public class Board : MonoBehaviour
                     tileSize / 2 + startY + j * tileSize + gap * j,
                     0);
                 GameObject tileObj = Instantiate(tilePrefab, pos, Quaternion.identity);
-                tileObj.transform.parent = transform;
+                tileObj.transform.SetParent(transform);
                 tileObj.name = $"Tile({i}, {j})";
                 Tile obj = tileObj.GetComponent<Tile>();
                 obj.Initialize(i, j);

@@ -124,7 +124,7 @@ public class GameEngine : MonoBehaviour
     private Board _createBoard()
     {
         var board = Instantiate(mainBoard, Vector3.zero, Quaternion.identity).GetComponentInChildren<Board>();
-        board.transform.parent = boardsParent.transform;
+        board.transform.SetParent(boardsParent.transform);
         return board;
     }
 
